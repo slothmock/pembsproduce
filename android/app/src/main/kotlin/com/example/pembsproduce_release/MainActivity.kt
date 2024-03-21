@@ -1,4 +1,4 @@
-package com.example.pembsproduce_release
+package com.pembsproduceltd.pembsproduce
 
 import io.flutter.embedding.android.FlutterActivity
 

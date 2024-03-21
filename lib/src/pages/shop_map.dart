@@ -12,8 +12,6 @@ import '../helpers/constants/colors.dart';
 import '../helpers/models/farmshop.dart';
 import 'shop_details.dart';
 
-import '../widgets/bottom_app_bar.dart';
-
 class ShopMapPage extends StatefulWidget {
   const ShopMapPage({super.key});
 
@@ -81,149 +79,155 @@ class _ShopMapPageState extends State<ShopMapPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          AppBar(title: const Text('Farmshops'), centerTitle: true, actions: [
-        IconButton(
-            onPressed: () async {
-              await showDialog<void>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      elevation: 2.0,
-                      scrollable: true,
-                      title: const Center(child: Text('Add to PembsProduce')),
-                      content: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Form(
-                          child: Column(
-                            children: <Widget>[
-                              TextFormField(
-                                keyboardType: TextInputType.name,
-                                textCapitalization: TextCapitalization.words,
-                                controller: _nameController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Place Name',
-                                ),
-                              ),
-                              TextFormField(
-                                maxLines: 4,
-                                keyboardType: TextInputType.text,
-                                textCapitalization:
-                                    TextCapitalization.sentences,
-                                controller: _descriptionController,
-                                decoration: const InputDecoration(
-                                  labelText: 'A Short Description',
-                                ),
-                              ),
-                              GooglePlaceAutoCompleteTextField(
-                                textEditingController: _addressController,
-                                googleAPIKey:
-                                    dotenv.env['GOOGLE_API_KEY'] ?? '',
-                                inputDecoration: const InputDecoration(
-                                        labelText: "Address")
-                                    .applyDefaults(
-                                        ThemeData.dark().inputDecorationTheme),
-                                boxDecoration:
-                                    const BoxDecoration(border: null),
-                                debounceTime: 300,
-                                countries: const ["UK"],
-                                isLatLngRequired: true,
-                                getPlaceDetailWithLatLng:
-                                    (Prediction prediction) {
-                                  // this method will return latlng with place detail
-                                  if (kDebugMode) {
-                                    print("placeDetails${prediction.lng}");
-                                  }
-                                  _shopLat = prediction.lat;
-                                  _shopLon = prediction.lng;
-                                },
-                                itemClick: (Prediction prediction) {
-                                  _addressController.text =
-                                      prediction.description!;
-                                  _addressController.selection =
-                                      TextSelection.fromPosition(TextPosition(
-                                          offset:
-                                              prediction.description!.length));
-                                },
-                                itemBuilder:
-                                    (context, index, Prediction prediction) {
-                                  return Container(
-                                    padding: const EdgeInsets.all(5),
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.location_on),
-                                        const SizedBox(
-                                          width: 7,
-                                        ),
-                                        Expanded(
-                                            child: Text(
-                                                prediction.description ?? ""))
-                                      ],
+      appBar: AppBar(
+          title: const Text('PembsProduce'),
+          centerTitle: true,
+          actions: [
+            IconButton(
+                onPressed: () async {
+                  await showDialog<void>(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          elevation: 2.0,
+                          scrollable: true,
+                          title:
+                              const Center(child: Text('Add to PembsProduce')),
+                          content: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Form(
+                              child: Column(
+                                children: <Widget>[
+                                  TextFormField(
+                                    keyboardType: TextInputType.name,
+                                    textCapitalization:
+                                        TextCapitalization.words,
+                                    controller: _nameController,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Place Name',
                                     ),
-                                  );
-                                },
-                                seperatedBuilder: const Divider(),
-                                isCrossBtnShown: false,
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                      actions: [
-                        Center(
-                          child: ElevatedButton(
-                              child: const Text("Submit for review"),
-                              onPressed: () async {
-                                await supabase.from('farmshops').insert({
-                                  "name": _nameController.value.text,
-                                  "description":
-                                      _descriptionController.value.text,
-                                  "lat": _shopLat,
-                                  "lon": _shopLon,
-                                  "active": false,
-                                });
-                                _closeDialog();
-                                await showDialog<void>(
-                                    useSafeArea: true,
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return const Center(
-                                        child: AlertDialog(
-                                          content: SizedBox(
-                                            height: 250,
-                                            child: Center(
-                                              child: Text(
-                                                "Thanks!\n\nYour submission has been sent for review!",
-                                                style: TextStyle(
-                                                  fontSize: 24.0,
-                                                ),
-                                                textAlign: TextAlign.center,
-                                              ),
+                                  ),
+                                  TextFormField(
+                                    maxLines: 4,
+                                    keyboardType: TextInputType.text,
+                                    textCapitalization:
+                                        TextCapitalization.sentences,
+                                    controller: _descriptionController,
+                                    decoration: const InputDecoration(
+                                      labelText: 'A Short Description',
+                                    ),
+                                  ),
+                                  GooglePlaceAutoCompleteTextField(
+                                    textEditingController: _addressController,
+                                    googleAPIKey:
+                                        dotenv.env['GOOGLE_API_KEY'] ?? '',
+                                    inputDecoration: const InputDecoration(
+                                            labelText: "Address")
+                                        .applyDefaults(ThemeData.dark()
+                                            .inputDecorationTheme),
+                                    boxDecoration:
+                                        const BoxDecoration(border: null),
+                                    debounceTime: 300,
+                                    countries: const ["UK"],
+                                    isLatLngRequired: true,
+                                    getPlaceDetailWithLatLng:
+                                        (Prediction prediction) {
+                                      // this method will return latlng with place detail
+                                      if (kDebugMode) {
+                                        print("placeDetails${prediction.lng}");
+                                      }
+                                      _shopLat = prediction.lat;
+                                      _shopLon = prediction.lng;
+                                    },
+                                    itemClick: (Prediction prediction) {
+                                      _addressController.text =
+                                          prediction.description!;
+                                      _addressController.selection =
+                                          TextSelection.fromPosition(
+                                              TextPosition(
+                                                  offset: prediction
+                                                      .description!.length));
+                                    },
+                                    itemBuilder: (context, index,
+                                        Prediction prediction) {
+                                      return Container(
+                                        padding: const EdgeInsets.all(5),
+                                        child: Row(
+                                          children: [
+                                            const Icon(Icons.location_on),
+                                            const SizedBox(
+                                              width: 7,
                                             ),
-                                          ),
+                                            Expanded(
+                                                child: Text(
+                                                    prediction.description ??
+                                                        ""))
+                                          ],
                                         ),
                                       );
+                                    },
+                                    seperatedBuilder: const Divider(),
+                                    isCrossBtnShown: false,
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                          actions: [
+                            Center(
+                              child: ElevatedButton(
+                                  child: const Text("Submit for review"),
+                                  onPressed: () async {
+                                    await supabase.from('farmshops').insert({
+                                      "name": _nameController.value.text,
+                                      "description":
+                                          _descriptionController.value.text,
+                                      "lat": _shopLat,
+                                      "lon": _shopLon,
+                                      "active": false,
                                     });
-                              }),
-                        ),
-                        const SizedBox(
-                          height: 6.0,
-                        ),
-                        Center(
-                          child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.secondary),
-                              child: const Text("Cancel"),
-                              onPressed: () {
-                                _closeDialog();
-                              }),
-                        )
-                      ],
-                    );
-                  });
-            },
-            icon: const Icon(Icons.add))
-      ]),
+                                    _closeDialog();
+                                    await showDialog<void>(
+                                        useSafeArea: true,
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return const Center(
+                                            child: AlertDialog(
+                                              content: SizedBox(
+                                                height: 250,
+                                                child: Center(
+                                                  child: Text(
+                                                    "Thanks!\n\nYour submission has been sent for review!",
+                                                    style: TextStyle(
+                                                      fontSize: 24.0,
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        });
+                                  }),
+                            ),
+                            const SizedBox(
+                              height: 6.0,
+                            ),
+                            Center(
+                              child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.secondary),
+                                  child: const Text("Cancel"),
+                                  onPressed: () {
+                                    _closeDialog();
+                                  }),
+                            )
+                          ],
+                        );
+                      });
+                },
+                icon: const Icon(Icons.add))
+          ]),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _future,
         builder: (context, snapshot) {
@@ -249,7 +253,6 @@ class _ShopMapPageState extends State<ShopMapPage> {
           );
         },
       ),
-      bottomNavigationBar: const PPBottomAppBar(index: 0),
     );
   }
 }

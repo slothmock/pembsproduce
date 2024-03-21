@@ -5,10 +5,9 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'package:supabase_auth_ui/supabase_auth_ui.dart';
-
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'src/helpers/constants/colors.dart';
 import 'src/helpers/constants/strings.dart';
@@ -16,24 +15,12 @@ import 'src/pages/shop_map.dart';
 import 'src/pages/splash.dart';
 
 Future<void> main() async {
-  try {
-    await dotenv.load(fileName: 'assets/.env');
-  } catch (e) {
-    if (kDebugMode) {
-      print(e);
-    }
-  }
+  await dotenv.load(fileName: 'assets/.env');
 
-  try {
-    await Supabase.initialize(
-        url: dotenv.env['SUPABASE_API_URL'] ?? '',
-        anonKey: dotenv.env['SUPABASE_KEY'] ?? '',
-        authOptions:
-            const FlutterAuthClientOptions(authFlowType: AuthFlowType.pkce),
-        debug: true);
-  } on Exception {
-    rethrow;
-  }
+  String apiUrl = dotenv.env['SUPABASE_API_URL'] ?? '';
+  String apiKey = dotenv.env['SUPABASE_KEY'] ?? '';
+
+  await Supabase.initialize(url: apiUrl, anonKey: apiKey, debug: true);
 
   final GoogleMapsFlutterPlatform mapsImplementation =
       GoogleMapsFlutterPlatform.instance;

@@ -1,6 +1,6 @@
 name: pembs_produce
 publish_to: 'none'
-version: 0.1.0
+version: 0.1.1
 
 environment:
   sdk: '>=3.3.0 <4.0.0'
@@ -14,12 +14,8 @@ dependencies:
   google_maps_flutter_android: ^2.6.2
   google_maps_flutter_platform_interface: ^2.4.3
   google_places_flutter: ^2.0.8
-  google_sign_in: ^6.2.1
-  json_annotation: ^4.8.1
-  json_serializable: ^6.7.1
   permission_handler: ^11.3.0
   shared_preferences: ^2.2.2
-  supabase_auth_ui: ^0.4.2
   supabase_flutter: ^2.2.0
 
 dev_dependencies:

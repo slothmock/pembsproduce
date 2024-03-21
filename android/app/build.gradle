@@ -23,7 +23,7 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "com.pembsproduceltd.pembsproduce_release"
+    namespace "com.pembsproduceltd.pembsproduce"
     compileSdk flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
@@ -41,7 +41,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.pembsproduceltd.pembsproduce_release"
+        applicationId "com.pembsproduceltd.pembsproduce"
         minSdkVersion 31
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
