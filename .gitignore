@@ -1,6 +1,8 @@
 # Env Vars
 .env
-AndroidManifest.xml
+
+# Android
+/android
 
 # Miscellaneous
 *.class
