@@ -1,4 +1,6 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, unused_field
+
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,9 +8,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:google_places_flutter/google_places_flutter.dart';
 import 'package:google_places_flutter/model/prediction.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:resend/exception.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../main.dart' show supabase;
-import '../helpers/constants/colors.dart';
+import '../../main.dart' show resend, supabase;
+
 import '../helpers/models/farmshop.dart';
 import 'shop_details.dart';
 
@@ -23,12 +28,15 @@ class _ShopMapPageState extends State<ShopMapPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  final String googleAddressApiKey = dotenv.env['GOOGLE_MAPS_KEY'] ?? '';
+
+  final ImagePicker _picker = ImagePicker();
+  XFile? _image;
 
   final _future = supabase.from('farmshops').select().eq('active', true);
   late dynamic _farmshopData;
   final Map<String, Farmshop> _farmshops = {};
 
-  // ignore: unused_field
   late GoogleMapController _mapController;
   static const CameraPosition _kPembs = CameraPosition(
     target: LatLng(51.80704091358167, -4.957055690899498),
@@ -42,13 +50,71 @@ class _ShopMapPageState extends State<ShopMapPage> {
   @override
   void initState() {
     super.initState();
+    _nameController.clear();
+    _descriptionController.clear();
+    _addressController.clear();
   }
 
   void _closeDialog() {
     _nameController.clear();
     _descriptionController.clear();
     _addressController.clear();
+    _image = null;
     Navigator.of(context).pop();
+  }
+
+  Future getImage(ImageSource media) async {
+    var img = await _picker.pickImage(source: media);
+
+    setState(() {
+      _image = img;
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Image upload successful!")));
+    });
+  }
+
+  void mediaSelectionAlert() {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            title: const Text('Please choose media'),
+            content: SizedBox(
+              height: MediaQuery.of(context).size.height / 6,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      getImage(ImageSource.gallery);
+                    },
+                    child: const Row(
+                      children: [
+                        Icon(Icons.image),
+                        Text('From Gallery'),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      getImage(ImageSource.camera);
+                    },
+                    child: const Row(
+                      children: [
+                        Icon(Icons.camera),
+                        Text('From Camera'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
   }
 
   Future<void> _onMapCreated(GoogleMapController controller) async {
@@ -86,6 +152,7 @@ class _ShopMapPageState extends State<ShopMapPage> {
             IconButton(
                 onPressed: () async {
                   await showDialog<void>(
+                      barrierDismissible: false,
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
@@ -108,7 +175,6 @@ class _ShopMapPageState extends State<ShopMapPage> {
                                     ),
                                   ),
                                   TextFormField(
-                                    maxLines: 4,
                                     keyboardType: TextInputType.text,
                                     textCapitalization:
                                         TextCapitalization.sentences,
@@ -120,7 +186,7 @@ class _ShopMapPageState extends State<ShopMapPage> {
                                   GooglePlaceAutoCompleteTextField(
                                     textEditingController: _addressController,
                                     googleAPIKey:
-                                        dotenv.env['GOOGLE_API_KEY'] ?? '',
+                                        dotenv.maybeGet('GOOGLE_API_KEY') ?? '',
                                     inputDecoration: const InputDecoration(
                                             labelText: "Address")
                                         .applyDefaults(ThemeData.dark()
@@ -132,10 +198,6 @@ class _ShopMapPageState extends State<ShopMapPage> {
                                     isLatLngRequired: true,
                                     getPlaceDetailWithLatLng:
                                         (Prediction prediction) {
-                                      // this method will return latlng with place detail
-                                      if (kDebugMode) {
-                                        print("placeDetails${prediction.lng}");
-                                      }
                                       _shopLat = prediction.lat;
                                       _shopLon = prediction.lng;
                                     },
@@ -175,17 +237,48 @@ class _ShopMapPageState extends State<ShopMapPage> {
                           ),
                           actions: [
                             Center(
+                              child: IconButton(
+                                onPressed: () {
+                                  mediaSelectionAlert();
+                                },
+                                icon: const Icon(Icons.add_a_photo),
+                                iconSize: 32,
+                              ),
+                            ),
+                            const SizedBox(height: 32.0),
+                            Center(
                               child: ElevatedButton(
                                   child: const Text("Submit for review"),
                                   onPressed: () async {
-                                    await supabase.from('farmshops').insert({
-                                      "name": _nameController.value.text,
-                                      "description":
-                                          _descriptionController.value.text,
-                                      "lat": _shopLat,
-                                      "lon": _shopLon,
-                                      "active": false,
-                                    });
+                                    try {
+                                      await supabase.from('farmshops').insert({
+                                        "name": _nameController.value.text,
+                                        "description":
+                                            _descriptionController.value.text,
+                                        "lat": _shopLat,
+                                        "lon": _shopLon,
+                                        "active": false,
+                                      });
+                                      var shopName = _nameController.value.text
+                                          .replaceAll(" ", "_");
+                                      await supabase.storage
+                                          .from("avatars")
+                                          .upload(shopName, File(_image!.path));
+                                      await resend.sendEmail(
+                                          from: "farmshops@resend.dev",
+                                          to: ["pembsproduce@gmail.com"],
+                                          subject: "Farmshop added by user",
+                                          text:
+                                              'Name: ${_nameController.value.text}');
+                                    } on PostgrestException catch (e) {
+                                      if (kDebugMode) {
+                                        print(e);
+                                      }
+                                    } on ResendException catch (e) {
+                                      if (kDebugMode) {
+                                        print(e);
+                                      }
+                                    }
                                     _closeDialog();
                                     await showDialog<void>(
                                         useSafeArea: true,
@@ -216,7 +309,7 @@ class _ShopMapPageState extends State<ShopMapPage> {
                             Center(
                               child: ElevatedButton(
                                   style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.secondary),
+                                      backgroundColor: Colors.red.shade400),
                                   child: const Text("Cancel"),
                                   onPressed: () {
                                     _closeDialog();

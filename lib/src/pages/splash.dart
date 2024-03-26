@@ -20,6 +20,8 @@ class SplashPageState extends State<SplashPage> {
 
   Future<void> requestPermission() async {
     await Permission.location.request();
+    await Permission.camera.request();
+    await Permission.storage.request();
   }
 
   Future<void> _redirect() async {

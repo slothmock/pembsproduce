@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../main.dart';
@@ -15,29 +16,46 @@ class ShopDetailsPage extends StatefulWidget {
 }
 
 class _ShopDetailsPageState extends State<ShopDetailsPage> {
-  late Image shopImage;
+  late Image? shopImage;
+  final Image placeholderImage =
+      const Image(image: AssetImage("assets/no_image_placeholder.png"));
 
-  Image getShopImage(String shopName) {
+  Image? getShopImage(String shopName) {
     shopName = shopName.replaceAll(" ", "_");
-    final shopImageURL =
-        supabase.storage.from('shop_images').getPublicUrl(shopName);
 
-    shopImage = Image.network(
-      shopImageURL,
-      filterQuality: FilterQuality.medium,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Center(
-          child: CircularProgressIndicator(
-            value: loadingProgress.expectedTotalBytes != null
-                ? loadingProgress.cumulativeBytesLoaded /
-                    loadingProgress.expectedTotalBytes!
-                : null,
-          ),
-        );
-      },
-    );
-    return shopImage;
+    try {
+      final shopImageURL =
+          supabase.storage.from('avatars').getPublicUrl(shopName);
+
+      shopImage = Image.network(
+        shopImageURL,
+        filterQuality: FilterQuality.medium,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded /
+                      loadingProgress.expectedTotalBytes!
+                  : null,
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          if (kDebugMode) {
+            print(error);
+          }
+          return Image(image: placeholderImage.image);
+        },
+      );
+
+      return shopImage;
+    } on NetworkImageLoadException catch (e) {
+      if (kDebugMode) {
+        print("## ERR ## - $e");
+      }
+    }
+    return null;
   }
 
   @override
@@ -62,21 +80,28 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
               height: MediaQuery.sizeOf(context).height / 2.25,
               child: shopImage,
             ),
-            const SizedBox(height: 18.0),
+            const SizedBox(height: 8.0),
             Expanded(
                 child: Container(
               alignment: Alignment.bottomCenter,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 8.0),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Center(
-                        child: Text(
-                          widget.shop!.description!,
-                          style: const TextStyle(fontSize: 22.0),
+                      Flexible(
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(12, 2, 12, 8),
+                            child: Text(
+                              widget.shop!.description!,
+                              softWrap: true,
+                              style: const TextStyle(
+                                  fontSize: 22.0, overflow: TextOverflow.clip),
+                              overflow: TextOverflow.clip,
+                            ),
+                          ),
                         ),
                       ),
                     ],

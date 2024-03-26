@@ -7,20 +7,27 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
+
+import 'package:resend/resend.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'src/helpers/constants/colors.dart';
 import 'src/helpers/constants/strings.dart';
-import 'src/pages/shop_map.dart';
+
 import 'src/pages/splash.dart';
 
 Future<void> main() async {
   await dotenv.load(fileName: 'assets/.env');
 
-  String apiUrl = dotenv.env['SUPABASE_API_URL'] ?? '';
-  String apiKey = dotenv.env['SUPABASE_KEY'] ?? '';
+  String dbApiUrl = dotenv.env['SUPABASE_API_URL'] ?? '';
+  String dbApiKey = dotenv.env['SUPABASE_KEY'] ?? '';
 
-  await Supabase.initialize(url: apiUrl, anonKey: apiKey, debug: true);
+  String resendKey = dotenv.env['RESEND_API_KEY'] ?? '';
+
+  Resend(apiKey: resendKey);
+
+  await Supabase.initialize(url: dbApiUrl, anonKey: dbApiKey, debug: true);
 
   final GoogleMapsFlutterPlatform mapsImplementation =
       GoogleMapsFlutterPlatform.instance;
@@ -31,6 +38,9 @@ Future<void> main() async {
 
   runApp(const MainApp());
 }
+
+final supabase = Supabase.instance.client;
+final resend = Resend.instance;
 
 Completer<AndroidMapRenderer?>? _initializedRendererCompleter;
 
@@ -53,15 +63,14 @@ Future<AndroidMapRenderer?> initializeMapRenderer() async {
     unawaited(mapsImplementation
         .initializeWithRenderer(AndroidMapRenderer.latest)
         .then((AndroidMapRenderer initializedRenderer) =>
-            completer.complete(initializedRenderer)));
+            completer.complete(initializedRenderer))
+        .onError((error, stackTrace) => throw Exception(error)));
   } else {
     completer.complete(null);
   }
 
   return completer.future;
 }
-
-final supabase = Supabase.instance.client;
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
@@ -86,7 +95,7 @@ class MainApp extends StatelessWidget {
           pageTransitionsTheme: const PageTransitionsTheme(builders: {
             TargetPlatform.android: OpenUpwardsPageTransitionsBuilder(),
           })),
-      home: kDebugMode ? const ShopMapPage() : const SplashPage(),
+      home: const SplashPage(),
     );
   }
 }
