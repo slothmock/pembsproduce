@@ -229,7 +229,7 @@ class _ShopMapPageState extends State<ShopMapPage> {
                                       );
                                     },
                                     seperatedBuilder: const Divider(),
-                                    isCrossBtnShown: false,
+                                    isCrossBtnShown: true,
                                   )
                                 ],
                               ),
@@ -251,6 +251,11 @@ class _ShopMapPageState extends State<ShopMapPage> {
                                   child: const Text("Submit for review"),
                                   onPressed: () async {
                                     try {
+                                      if (_nameController.value.text.isEmpty ||
+                                          _descriptionController.value.text.isEmpty ||
+                                          _addressController.value.text.isEmpty ) {
+                                        throw Exception("No values entered");
+                                      }
                                       await supabase.from('farmshops').insert({
                                         "name": _nameController.value.text,
                                         "description":
@@ -278,23 +283,40 @@ class _ShopMapPageState extends State<ShopMapPage> {
                                       if (kDebugMode) {
                                         print(e);
                                       }
+                                    } on Exception catch (e) {
+                                      if (kDebugMode) {
+                                        print(e);
+                                      }
                                     }
                                     _closeDialog();
                                     await showDialog<void>(
                                         useSafeArea: true,
                                         context: context,
+                                        barrierDismissible: true,
                                         builder: (BuildContext context) {
                                           return const Center(
                                             child: AlertDialog(
                                               content: SizedBox(
                                                 height: 250,
                                                 child: Center(
-                                                  child: Text(
-                                                    "Thanks!\n\nYour submission has been sent for review!",
-                                                    style: TextStyle(
-                                                      fontSize: 24.0,
+                                                  child: Column(
+                                                    children: [
+                                                      Text(
+                                                        "Thanks!\n\nYour submission has been sent for review!",
+                                                        style: TextStyle(
+                                                          fontSize: 24.0,
+                                                        ),
+                                                        textAlign: TextAlign.center,
+                                                      ),
+                                                    SizedBox(height: 64),
+                                                    Text(
+                                                      "(Tap anywhere outside of the dialog to close)",
+                                                      style: TextStyle(
+                                                        fontSize: 8.0,
+                                                      ),
+                                                      textAlign: TextAlign.center,
                                                     ),
-                                                    textAlign: TextAlign.center,
+                                                    ],
                                                   ),
                                                 ),
                                               ),

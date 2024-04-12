@@ -11,6 +11,7 @@ class ShopDetailsPage extends StatefulWidget {
 
   final Farmshop? shop;
 
+
   @override
   State<ShopDetailsPage> createState() => _ShopDetailsPageState();
 }
@@ -61,7 +62,7 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
   @override
   void initState() {
     super.initState();
-    shopImage = getShopImage(widget.shop!.name!);
+    shopImage = getShopImage(widget.shop!.name);
   }
 
   @override
@@ -69,14 +70,14 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.shop!.name!),
+          title: Text(widget.shop!.name),
           centerTitle: true,
         ),
         body: Column(
           children: [
             Container(
-              color: AppColors.shopImageBG,
-              alignment: Alignment.topCenter,
+              color: AppColors.primaryBackground,
+              alignment: Alignment.center,
               height: MediaQuery.sizeOf(context).height / 2.25,
               child: shopImage,
             ),
@@ -93,13 +94,14 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
                       Flexible(
                         child: Center(
                           child: Padding(
-                            padding: const EdgeInsets.fromLTRB(12, 2, 12, 8),
+                            padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
                             child: Text(
-                              widget.shop!.description!,
+                              widget.shop!.description,
                               softWrap: true,
+                              maxLines: 11,
                               style: const TextStyle(
                                   fontSize: 22.0, overflow: TextOverflow.clip),
-                              overflow: TextOverflow.clip,
+                              overflow: TextOverflow.fade,
                             ),
                           ),
                         ),
