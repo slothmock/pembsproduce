@@ -25,6 +25,10 @@ class ShopMapPage extends StatefulWidget {
 }
 
 class _ShopMapPageState extends State<ShopMapPage> {
+  late FocusNode _focusNodeName;
+  late FocusNode _focusNodeDesc;
+  late FocusNode _focusNodeAddr;
+
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
@@ -50,9 +54,27 @@ class _ShopMapPageState extends State<ShopMapPage> {
   @override
   void initState() {
     super.initState();
+
+    _focusNodeName = FocusNode();
+    _focusNodeDesc = FocusNode();
+    _focusNodeAddr = FocusNode();
+
     _nameController.clear();
     _descriptionController.clear();
     _addressController.clear();
+  }
+
+  @override
+  void dispose() {
+    _focusNodeName.dispose();
+    _focusNodeDesc.dispose();
+    _focusNodeAddr.dispose();
+
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _addressController.dispose();
+
+    super.dispose();
   }
 
   void _closeDialog() {
@@ -166,6 +188,7 @@ class _ShopMapPageState extends State<ShopMapPage> {
                               child: Column(
                                 children: <Widget>[
                                   TextFormField(
+                                    focusNode: _focusNodeName,
                                     keyboardType: TextInputType.name,
                                     textCapitalization:
                                         TextCapitalization.words,
@@ -173,8 +196,11 @@ class _ShopMapPageState extends State<ShopMapPage> {
                                     decoration: const InputDecoration(
                                       labelText: 'Place Name',
                                     ),
+                                    onTap: () => _focusNodeName.requestFocus(),
+                                    onTapOutside: (event) => _focusNodeName.unfocus(),
                                   ),
                                   TextFormField(
+                                    focusNode: _focusNodeDesc,
                                     keyboardType: TextInputType.text,
                                     textCapitalization:
                                         TextCapitalization.sentences,
@@ -182,8 +208,11 @@ class _ShopMapPageState extends State<ShopMapPage> {
                                     decoration: const InputDecoration(
                                       labelText: 'A Short Description',
                                     ),
+                                    onTap: () => _focusNodeDesc.requestFocus(),
+                                    onTapOutside: (event) => _focusNodeDesc.unfocus(),
                                   ),
                                   GooglePlaceAutoCompleteTextField(
+                                    focusNode: _focusNodeAddr,
                                     textEditingController: _addressController,
                                     googleAPIKey:
                                         dotenv.maybeGet('GOOGLE_API_KEY') ?? '',
@@ -312,7 +341,7 @@ class _ShopMapPageState extends State<ShopMapPage> {
                                                     Text(
                                                       "(Tap anywhere outside of the dialog to close)",
                                                       style: TextStyle(
-                                                        fontSize: 8.0,
+                                                        fontSize: 10.0,
                                                       ),
                                                       textAlign: TextAlign.center,
                                                     ),
