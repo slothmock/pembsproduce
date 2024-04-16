@@ -47,6 +47,9 @@ class _ShopMapPageState extends State<ShopMapPage> {
     zoom: 10.5,
   );
   final Map<String, Marker> _markers = {};
+  final LatLngBounds _bounds = LatLngBounds(
+    southwest: const LatLng(51.60036862143756, -5.429183658195824), 
+    northeast: const LatLng(52.1912052978423, -4.374608878047448));
 
   late String? _shopLat;
   late String? _shopLon;
@@ -139,18 +142,18 @@ class _ShopMapPageState extends State<ShopMapPage> {
         });
   }
 
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    _mapController = controller;
+  void refreshMarkers() async {
+    var res = await supabase.from('farmshops').select().eq('active', true);
     setState(() {
       _markers.clear();
-      for (final shopMarker in _farmshopData) {
-        final marker = Marker(
-          markerId: MarkerId(shopMarker["name"]),
-          position: LatLng(shopMarker["lat"], shopMarker["lon"]),
+      for (var farmshop in res) {
+      final marker = Marker(
+          markerId: MarkerId(farmshop["name"]),
+          position: LatLng(farmshop["lat"], farmshop["lon"]),
           onTap: () {
             Navigator.of(context).push(PageRouteBuilder(
               pageBuilder: (_, __, ___) =>
-                  ShopDetailsPage(shop: _farmshops[shopMarker['name']]),
+                  ShopDetailsPage(shop: _farmshops[farmshop['name']]),
               transitionDuration: const Duration(seconds: 1),
               transitionsBuilder: (_, a, __, c) => FadeTransition(
                 opacity: a,
@@ -159,8 +162,16 @@ class _ShopMapPageState extends State<ShopMapPage> {
             ));
           },
         );
-        _markers[shopMarker["name"]] = marker;
+        _markers[farmshop["name"]] = marker;
       }
+    });
+  }
+
+  Future<void> _onMapCreated(GoogleMapController controller) async {
+    _mapController = controller;
+    setState(() {
+      _markers.clear();
+      refreshMarkers();
     });
   }
 
@@ -170,6 +181,7 @@ class _ShopMapPageState extends State<ShopMapPage> {
       appBar: AppBar(
           title: const Text('PembsProduce'),
           centerTitle: true,
+          leading: IconButton(icon: const Icon(Icons.refresh), onPressed: () => refreshMarkers(),),
           actions: [
             IconButton(
                 onPressed: () async {
@@ -394,6 +406,8 @@ class _ShopMapPageState extends State<ShopMapPage> {
             onMapCreated: (controller) => _onMapCreated(controller),
             myLocationEnabled: true,
             markers: _markers.values.toSet(),
+            cameraTargetBounds: CameraTargetBounds(_bounds),
+            minMaxZoomPreference: const MinMaxZoomPreference(9, 21),
           );
         },
       ),
