@@ -7,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
+import 'package:in_app_update/in_app_update.dart';
 
 import 'package:resend/resend.dart';
 
@@ -18,6 +19,9 @@ import 'src/helpers/constants/strings.dart';
 import 'src/pages/splash.dart';
 
 Future<void> main() async {
+
+  WidgetsFlutterBinding.ensureInitialized();
+  await checkForUpdates();
   await dotenv.load(fileName: 'assets/.env');
 
   String dbApiUrl = dotenv.env['SUPABASE_API_URL'] ?? '';
@@ -70,6 +74,14 @@ Future<AndroidMapRenderer?> initializeMapRenderer() async {
   }
 
   return completer.future;
+}
+
+Future<void> checkForUpdates() async {
+  InAppUpdate.checkForUpdate().then((info) {
+    if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+      InAppUpdate.performImmediateUpdate();
+    }
+  });
 }
 
 class MainApp extends StatelessWidget {

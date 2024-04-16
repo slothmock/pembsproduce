@@ -17,6 +17,7 @@ class ShopDetailsPage extends StatefulWidget {
 }
 
 class _ShopDetailsPageState extends State<ShopDetailsPage> {
+  late String shopDesc;
   late Image? shopImage;
   final Image placeholderImage =
       const Image(image: AssetImage("assets/no_image_placeholder.png"));
@@ -63,6 +64,12 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
   void initState() {
     super.initState();
     shopImage = getShopImage(widget.shop!.name);
+    shopDesc = widget.shop!.description.isNotEmpty ? widget.shop!.description : "No description available...";
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -96,7 +103,7 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
                             child: Text(
-                              widget.shop!.description,
+                              shopDesc,
                               softWrap: true,
                               maxLines: 11,
                               style: const TextStyle(
