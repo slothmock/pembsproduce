@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pembs_produce/src/helpers/constants/colors.dart';
 import 'package:pembs_produce/src/pages/shop_map.dart';
-import 'package:permission_handler/permission_handler.dart';
-
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
 
@@ -14,14 +12,7 @@ class SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    requestPermission();
     _redirect();
-  }
-
-  Future<void> requestPermission() async {
-    await Permission.location.request();
-    await Permission.camera.request();
-    await Permission.storage.request();
   }
 
   Future<void> _redirect() async {

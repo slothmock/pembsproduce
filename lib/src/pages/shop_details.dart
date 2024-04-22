@@ -9,7 +9,7 @@ import '../helpers/models/farmshop.dart';
 class ShopDetailsPage extends StatefulWidget {
   const ShopDetailsPage({super.key, required this.shop});
 
-  final Farmshop? shop;
+  final Farmshop shop;
 
 
   @override
@@ -63,8 +63,8 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
   @override
   void initState() {
     super.initState();
-    shopImage = getShopImage(widget.shop!.name);
-    shopDesc = widget.shop!.description.isNotEmpty ? widget.shop!.description : "No description available...";
+    shopImage = getShopImage(widget.shop.name);
+    shopDesc = widget.shop.description.isNotEmpty ? widget.shop.description : "No description available...";
   }
 
   @override
@@ -77,7 +77,7 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
-          title: Text(widget.shop!.name),
+          title: Text(widget.shop.name),
           centerTitle: true,
         ),
         body: Column(

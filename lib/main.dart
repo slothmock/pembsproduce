@@ -8,6 +8,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
 import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
 import 'package:in_app_update/in_app_update.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'package:resend/resend.dart';
 
@@ -22,6 +23,7 @@ Future<void> main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
   await checkForUpdates();
+  await requestPermissions();
   await dotenv.load(fileName: 'assets/.env');
 
   String dbApiUrl = dotenv.env['SUPABASE_API_URL'] ?? '';
@@ -81,8 +83,20 @@ Future<void> checkForUpdates() async {
     if (info.updateAvailability == UpdateAvailability.updateAvailable) {
       InAppUpdate.performImmediateUpdate();
     }
+  }).onError((error, stackTrace) {
+    if (kDebugMode) {
+      print(error);
+    } else {
+      throw Exception(error);
+    }
   });
 }
+
+Future<void> requestPermissions() async {
+    await Permission.location.request();
+    await Permission.camera.request();
+    await Permission.storage.request();
+  }
 
 class MainApp extends StatelessWidget {
   const MainApp({super.key});

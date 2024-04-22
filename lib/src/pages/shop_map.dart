@@ -53,6 +53,8 @@ class _ShopMapPageState extends State<ShopMapPage> {
 
   late String? _shopLat;
   late String? _shopLon;
+  
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -142,6 +144,94 @@ class _ShopMapPageState extends State<ShopMapPage> {
         });
   }
 
+  Future<void> _onSubmit() async {
+    setState(() => _isLoading = true);
+    Future.delayed(
+      const Duration(seconds: 2),
+      () => setState(() => _isLoading = false),
+    );
+    try {
+      // Validate the form
+      bool formValid = await isFormValid();
+      if (!formValid) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("The form is invalid, please make sure all fields are complete and an image has been uploaded."),
+            elevation: 2.5,
+            duration: Duration(seconds: 10),
+            ));
+        return;
+      }
+      await supabase.from('farmshops').insert({
+        "name": _nameController.value.text,
+        "description":
+            _descriptionController.value.text,
+        "lat": _shopLat,
+        "lon": _shopLon,
+        "active": false,
+      });
+      var shopName = _nameController.value.text
+          .replaceAll(" ", "_");
+      await supabase.storage
+          .from("avatars")
+          .upload(shopName, File(_image!.path));
+      await resend.sendEmail(
+          from: "farmshops@resend.dev",
+          to: ["pembsproduce@gmail.com"],
+          subject: "Farmshop added by user",
+          text:
+              'Name: ${_nameController.value.text}');
+    } on PostgrestException catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    } on ResendException catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    } on Exception catch (e) {
+      if (kDebugMode) {
+        print(e);
+      }
+    }
+
+    _closeDialog();
+    await showDialog<void>(
+        useSafeArea: true,
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return const Center(
+            child: AlertDialog(
+              content: SizedBox(
+                height: 250,
+                child: Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        "Thanks!\n\nYour submission has been sent for review!",
+                        style: TextStyle(
+                          fontSize: 24.0,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    SizedBox(height: 64),
+                    Text(
+                      "(Tap anywhere outside of the dialog to close)",
+                      style: TextStyle(
+                        fontSize: 10.0,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        });                          
+  }
+
   void refreshMarkers() async {
     var res = await supabase.from('farmshops').select().eq('active', true);
     setState(() {
@@ -153,7 +243,7 @@ class _ShopMapPageState extends State<ShopMapPage> {
           onTap: () {
             Navigator.of(context).push(PageRouteBuilder(
               pageBuilder: (_, __, ___) =>
-                  ShopDetailsPage(shop: _farmshops[farmshop['name']]),
+                  ShopDetailsPage(shop: _farmshops[farmshop["name"]]!),
               transitionDuration: const Duration(seconds: 1),
               transitionsBuilder: (_, a, __, c) => FadeTransition(
                 opacity: a,
@@ -288,83 +378,22 @@ class _ShopMapPageState extends State<ShopMapPage> {
                             ),
                             const SizedBox(height: 32.0),
                             Center(
-                              child: ElevatedButton(
-                                  child: const Text("Submit for review"),
-                                  onPressed: () async {
-                                    try {
-                                      if (_nameController.value.text.isEmpty ||
-                                          _descriptionController.value.text.isEmpty ||
-                                          _addressController.value.text.isEmpty ) {
-                                        throw Exception("No values entered");
-                                      }
-                                      await supabase.from('farmshops').insert({
-                                        "name": _nameController.value.text,
-                                        "description":
-                                            _descriptionController.value.text,
-                                        "lat": _shopLat,
-                                        "lon": _shopLon,
-                                        "active": false,
-                                      });
-                                      var shopName = _nameController.value.text
-                                          .replaceAll(" ", "_");
-                                      await supabase.storage
-                                          .from("avatars")
-                                          .upload(shopName, File(_image!.path));
-                                      await resend.sendEmail(
-                                          from: "farmshops@resend.dev",
-                                          to: ["pembsproduce@gmail.com"],
-                                          subject: "Farmshop added by user",
-                                          text:
-                                              'Name: ${_nameController.value.text}');
-                                    } on PostgrestException catch (e) {
-                                      if (kDebugMode) {
-                                        print(e);
-                                      }
-                                    } on ResendException catch (e) {
-                                      if (kDebugMode) {
-                                        print(e);
-                                      }
-                                    } on Exception catch (e) {
-                                      if (kDebugMode) {
-                                        print(e);
-                                      }
-                                    }
-                                    _closeDialog();
-                                    await showDialog<void>(
-                                        useSafeArea: true,
-                                        context: context,
-                                        barrierDismissible: true,
-                                        builder: (BuildContext context) {
-                                          return const Center(
-                                            child: AlertDialog(
-                                              content: SizedBox(
-                                                height: 250,
-                                                child: Center(
-                                                  child: Column(
-                                                    children: [
-                                                      Text(
-                                                        "Thanks!\n\nYour submission has been sent for review!",
-                                                        style: TextStyle(
-                                                          fontSize: 24.0,
-                                                        ),
-                                                        textAlign: TextAlign.center,
-                                                      ),
-                                                    SizedBox(height: 64),
-                                                    Text(
-                                                      "(Tap anywhere outside of the dialog to close)",
-                                                      style: TextStyle(
-                                                        fontSize: 10.0,
-                                                      ),
-                                                      textAlign: TextAlign.center,
-                                                    ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        });
-                                  }),
+                              child: ElevatedButton.icon(
+                                onPressed: () async { _isLoading ? null : await _onSubmit(); },
+                                style: ElevatedButton.styleFrom(padding: const EdgeInsets.all(16.0)),
+                                icon: _isLoading
+                                    ? Container(
+                                        width: 24,
+                                        height: 24,
+                                        padding: const EdgeInsets.all(2.0),
+                                        child: const CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 3,
+                                        ),
+                                      )
+                                    : const Icon(Icons.feedback),
+                                label: const Text('Submit for review'),
+                              ),
                             ),
                             const SizedBox(
                               height: 6.0,
@@ -413,4 +442,15 @@ class _ShopMapPageState extends State<ShopMapPage> {
       ),
     );
   }
+  
+Future<bool> isFormValid() async {
+  if (_nameController.text.isEmpty ||
+      _descriptionController.text.isEmpty ||
+      _addressController.text.isEmpty ||
+      _image == null) {
+    return false;
+  }
+  return true;
+}
+
 }
