@@ -5,5 +5,8 @@ class Farmshop {
   final double lon;
 
   Farmshop(
-      {required this.name, required this.description, required this.lat, required this.lon});
+      {required this.name,
+      required this.description,
+      required this.lat,
+      required this.lon});
 }

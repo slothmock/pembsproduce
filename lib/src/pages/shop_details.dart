@@ -1,5 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+
+import 'package:map_launcher/map_launcher.dart';
+import 'package:pembs_produce/src/helpers/location.dart';
 
 import '../../main.dart';
 
@@ -21,6 +25,8 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
   late Image? shopImage;
   final Image placeholderImage =
       const Image(image: AssetImage("assets/no_image_placeholder.png"));
+
+  final DirectionsMode _directionsMode = DirectionsMode.driving;
 
   Image? getShopImage(String shopName) {
     shopName = shopName.replaceAll(" ", "_");
@@ -95,26 +101,48 @@ class _ShopDetailsPageState extends State<ShopDetailsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
-                            child: Text(
-                              shopDesc,
-                              softWrap: true,
-                              maxLines: 11,
-                              style: const TextStyle(
-                                  fontSize: 22.0, overflow: TextOverflow.clip),
-                              overflow: TextOverflow.fade,
+                  SingleChildScrollView(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(12, 16, 12, 8),
+                              child: Text(
+                                shopDesc,
+                                softWrap: true,
+                                maxLines: 11,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                    fontSize: 22.0, overflow: TextOverflow.clip),
+                                overflow: TextOverflow.fade,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                Center(
+                  child: ElevatedButton(
+                    style: const ButtonStyle(
+                      minimumSize: MaterialStatePropertyAll(Size(192.0, 36.0))
+                    ),
+                    onPressed: () async { 
+                      Position userLocation = await LocationHelper.getUserCurrentLocation();
+                      await MapLauncher.showDirections(
+                        mapType: MapType.google, 
+                        origin: Coords(
+                          userLocation.latitude, userLocation.longitude),
+                        originTitle: "Your Location",
+                        destination: Coords(widget.shop.lat, widget.shop.lon),
+                        destinationTitle: widget.shop.name,
+                        directionsMode: _directionsMode
+                        );
+                     },
+                    child: const Text("Get Directions"),)
+                )
                 ],
               ),
             ))

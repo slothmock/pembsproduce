@@ -55,7 +55,8 @@ android {
         applicationId "com.pembsproduceltd.pembsproduce"
         minSdkVersion 31
         targetSdkVersion flutter.targetSdkVersion
-        versionCode 3
+        // Increase version code on each release build (+1)
+        versionCode 5
         versionName flutterVersionName
     }
 
