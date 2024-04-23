@@ -111,6 +111,9 @@ class _FAQPageState extends State<FAQPage> {
       persistentFooterAlignment: AlignmentDirectional.bottomCenter,
       persistentFooterButtons: [
         ElevatedButton.icon(
+            style: ButtonStyle(
+                backgroundColor:
+                    MaterialStatePropertyAll(Color(Colors.red.value))),
             onPressed: () async {
               await _reportIssueDialog();
             },
@@ -159,7 +162,7 @@ class _FAQPageState extends State<FAQPage> {
         }
       }
       await supabase.from('problem_reports').insert({
-        "name": _titleController.value.text,
+        "title": _titleController.value.text,
         "description": _descriptionController.value.text,
       });
 
@@ -168,7 +171,7 @@ class _FAQPageState extends State<FAQPage> {
           to: ["pembsproduce@gmail.com"],
           subject: "Problem reported",
           text:
-              'Name: ${_titleController.value.text}\nDescription:${_descriptionController.value.text}');
+              'Name: ${_titleController.value.text}\nDescription: ${_descriptionController.value.text}');
     } on PostgrestException catch (e) {
       if (kDebugMode) {
         print(e);
@@ -213,7 +216,7 @@ class _FAQPageState extends State<FAQPage> {
 
   _reportIssueDialog() async {
     await showDialog<void>(
-        barrierDismissible: false,
+        barrierDismissible: true,
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -259,7 +262,10 @@ class _FAQPageState extends State<FAQPage> {
                     _isLoading ? null : await _onSubmit();
                   },
                   style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.all(16.0)),
+                      padding: const EdgeInsets.all(8.0),
+                      minimumSize: const Size(172, 32),
+                      backgroundColor: Colors.red),
+                      
                   icon: _isLoading
                       ? Container(
                           width: 24,
@@ -270,22 +276,11 @@ class _FAQPageState extends State<FAQPage> {
                             strokeWidth: 3,
                           ),
                         )
-                      : const Icon(Icons.feedback, size: 18.0),
-                  label: const Text('Submit for review'),
+                      : const Icon(Icons.feedback, size: 12.0),
+                  label: const Text('Report issue'),
                 ),
               ),
-              const SizedBox(
-                height: 6.0,
-              ),
-              Center(
-                child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red.shade400),
-                    child: const Text("Cancel"),
-                    onPressed: () {
-                      _closeDialog();
-                    }),
-              )
+              
             ],
           );
         });
